@@ -172,7 +172,21 @@ vim.opt.softtabstop = 2 -- Set soft tab width to 2 spaces
 vim.opt.shiftwidth = 2 -- Set indentation size to 2 spaces
 
 -- remember the last line I was on
-vim.opt.shada = "'100,f1,h"
+vim.api.nvim_create_autocmd('BufReadPost', {
+  group = vim.api.nvim_create_augroup('LastPlace', { clear = true }),
+  callback = function()
+    local mark = vim.api.nvim_buf_get_mark(0, '"')
+    local last_line = mark[1]
+    local last_col = mark[2]
+    local line_count = vim.api.nvim_buf_line_count(0)
+
+    -- Only jump if the mark is valid (not 0, not beyond the end of the file)
+    -- and not for specific filetypes like Git commit messages
+    if last_line > 0 and last_line <= line_count and vim.opt.filetype:get() ~= 'gitcommit' and vim.opt.filetype:get() ~= 'gitrebase' then
+      vim.cmd 'normal! g`"'
+    end
+  end,
+})
 
 -- git blamer
 vim.g.blamer_enabled = true
